@@ -1,0 +1,7 @@
+.vscode/
+data/
+bin/
+build/
+docs/
+logs/
+config.mk
