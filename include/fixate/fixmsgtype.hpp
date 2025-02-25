@@ -319,7 +319,7 @@ namespace fixate {
         template <const char* const* MsgTypeStrRef>
         struct MessageTypeHash<MsgTypeStrRef, 2> { enum : uint16_t { value = ((*MsgTypeStrRef)[0] - 48) | ((*MsgTypeStrRef)[1] - 48) << 8 }; };
 
-        uint16_t GetMessageTypeHash(const char* str, int strLen) {
+        inline uint16_t GetMessageTypeHash(const char* str, int strLen) {
             return strLen == 1 ? (str[0] - 48) : (str[0] - 48) | ((str[0] - 48) << 8);
         }
 
@@ -419,7 +419,7 @@ namespace fixate {
             std::make_pair(MessageTypeHash<&M_QuoteCancel>::value, MessageTypeEnum::QuoteCancel)
         };
     }
-    MessageTypeEnum MsgTypeStringToEnum(const char* str, int strLen) {
+    inline MessageTypeEnum MsgTypeStringToEnum(const char* str, int strLen) {
         uint16_t h = details::GetMessageTypeHash(str, strLen);
         for (size_t i = 0; i < details::MsgTypeHashMap.max_size(); ++i) {
             const auto& p = details::MsgTypeHashMap[i];
@@ -427,10 +427,10 @@ namespace fixate {
         }
         return MessageTypeEnum(-1);
     }
-    MessageTypeEnum MsgTypeStringToEnum(std::string_view str) {
+    inline MessageTypeEnum MsgTypeStringToEnum(std::string_view str) {
         return MsgTypeStringToEnum(str.data(), (int)str.size());
     }
-    MessageTypeEnum MsgTypeStringToEnum(const std::string& str) {
+    inline MessageTypeEnum MsgTypeStringToEnum(const std::string& str) {
         return MsgTypeStringToEnum(str.c_str(), (int)str.size());
     }
 }

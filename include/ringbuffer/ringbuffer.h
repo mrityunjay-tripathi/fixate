@@ -1,3 +1,15 @@
+/**
+* @file ringbuffer/ringbuffer.h
+* @author Mrityunjay Tripathi
+*
+* fixate is free software; you may redistribute it and/or modify it under the
+* terms of the BSD 2-Clause "Simplified" License. You should have received a copy of the
+* BSD 2-Clause "Simplified" License along with fixate. If not, see
+* http://www.opensource.org/licenses/BSD-2-Clause for more information.
+*
+* Copyright (c) 2025, Mrityunjay Tripathi
+*/
+
 #ifndef VIRTUAL_RING_BUFFER_H_
 #define VIRTUAL_RING_BUFFER_H_
 

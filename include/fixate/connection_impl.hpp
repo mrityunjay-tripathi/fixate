@@ -22,7 +22,7 @@
 namespace fixate
 {
     template <typename ConnectionType>
-    base_connection<ConnectionType>::base_connection(const std::string& remote_address, int port,
+    inline base_connection<ConnectionType>::base_connection(const std::string& remote_address, int port,
                 on_connect on_connect_cb, on_disconnect on_disconnect_cb, on_error on_error_cb)
         : port(port), remote_address(remote_address), vrb_context(nullptr),
                 on_connect_cb(on_connect_cb), on_disconnect_cb(on_disconnect_cb), on_error_cb(on_error_cb)
@@ -33,11 +33,11 @@ namespace fixate
     }
 
     template <typename ConnectionType>
-    base_connection<ConnectionType>::base_connection(base_connection&& other)
+    inline base_connection<ConnectionType>::base_connection(base_connection&& other)
         : is_active(false) { *this = std::move(other); }
 
     template <typename ConnectionType>
-    base_connection<ConnectionType>& base_connection<ConnectionType>::operator=(base_connection&& other) {
+    inline base_connection<ConnectionType>& base_connection<ConnectionType>::operator=(base_connection&& other) {
         if (this != &other) {
             if (this->active()) { disconnect(); }
             sockfd = std::move(other.sockfd);
@@ -47,6 +47,7 @@ namespace fixate
             last_read_timestamp = std::move(other.last_read_timestamp);
             last_sent_timestamp = std::move(other.last_sent_timestamp);
             on_connect_cb = std::move(other.on_connect_cb);
+            on_disconnect_cb = std::move(other.on_disconnect_cb);
             on_error_cb = std::move(other.on_error_cb);
             vrb_context = other.vrb_context;
             other.vrb_context = nullptr;
@@ -55,67 +56,67 @@ namespace fixate
     }
 
     template <typename ConnectionType>
-    base_connection<ConnectionType>::~base_connection() { vrb_ctx_destroy(vrb_context); }
+    inline base_connection<ConnectionType>::~base_connection() { vrb_ctx_destroy(vrb_context); }
 
     template <typename ConnectionType>
-    int64_t base_connection<ConnectionType>::system_timestamp() {
+    inline int64_t base_connection<ConnectionType>::system_timestamp() {
         timespec ts;
         ::clock_gettime(CLOCK_REALTIME, &ts);
         return (int64_t)ts.tv_sec * 1e+9 + ts.tv_nsec;
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::close_file_descriptor(int fd) {
+    inline int base_connection<ConnectionType>::close_file_descriptor(int fd) {
         int ec = close(fd);
         if (ec != 0) throw connection_exception(ec, "Failed to close file descriptor.");
         return ec;
     }
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::connect() {
+    inline int base_connection<ConnectionType>::connect() {
         return static_cast<ConnectionType*>(this)->connect();
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::disconnect() {
+    inline int base_connection<ConnectionType>::disconnect() {
         return static_cast<ConnectionType*>(this)->disconnect();
     }
 
     template <typename ConnectionType>
-    const char* base_connection<ConnectionType>::read_ptr() {
+    inline const char* base_connection<ConnectionType>::read_ptr() {
         return reinterpret_cast<const char*>(vrb_prefetch_head(vrb_context));
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::move_head(int size) {
+    inline int base_connection<ConnectionType>::move_head(int size) {
         return vrb_move_head(vrb_context, size);
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::size() {
+    inline int base_connection<ConnectionType>::size() {
         return vrb_size(vrb_context);
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::poll() {
+    inline int base_connection<ConnectionType>::poll() {
         return static_cast<ConnectionType*>(this)->poll();
     }
 
     template <typename ConnectionType>
-    int base_connection<ConnectionType>::send_message(const char *buffer, int size) {
+    inline int base_connection<ConnectionType>::send_message(const char *buffer, int size) {
         return static_cast<ConnectionType*>(this)->send_message(buffer, size);
     }
 
     template <typename ConnectionType>
-    bool base_connection<ConnectionType>::active() const { return is_active; }
+    inline bool base_connection<ConnectionType>::active() const { return is_active; }
 
     template <typename ConnectionType>
-    int64_t base_connection<ConnectionType>::last_sent_at() const { return last_sent_timestamp; }
+    inline int64_t base_connection<ConnectionType>::last_sent_at() const { return last_sent_timestamp; }
 
     template <typename ConnectionType>
-    int64_t base_connection<ConnectionType>::last_read_at() const { return last_read_timestamp; }
+    inline int64_t base_connection<ConnectionType>::last_read_at() const { return last_read_timestamp; }
 
     template <typename ConnectionType>
-    bool base_connection<ConnectionType>::has_data() {
+    inline bool base_connection<ConnectionType>::has_data() {
         // check if there is data to read
         fd_set readfd;
         FD_ZERO(&readfd);
@@ -132,23 +133,23 @@ namespace fixate
 
 namespace fixate
 {
-    tcp_client::tcp_client(const std::string& remote_address, int port,
+    inline tcp_client::tcp_client(const std::string& remote_address, int port,
                 on_connect on_connect_cb, on_disconnect on_disconnect_cb, on_error on_error_cb)
         : base(remote_address, port, on_connect_cb, on_disconnect_cb, on_error_cb) {}
 
-    tcp_client::tcp_client(tcp_client&& other)
+    inline tcp_client::tcp_client(tcp_client&& other)
         : base(static_cast<base&&>(other)) {}
 
-    tcp_client& tcp_client::operator=(tcp_client&& other) {
+    inline tcp_client& tcp_client::operator=(tcp_client&& other) {
         if (this != &other) {
             base::operator=(std::move(static_cast<base&&>(other)));
         }
         return *this;
     }
 
-    tcp_client::~tcp_client() { disconnect(); }
+    inline tcp_client::~tcp_client() { disconnect(); }
 
-    void tcp_client::error_handler() {
+    inline void tcp_client::error_handler() {
         int ec = errno;
         switch (ec) {
             case EAGAIN: break;
@@ -156,7 +157,7 @@ namespace fixate
         }
     }
 
-    int tcp_client::connect()
+    inline int tcp_client::connect()
     {
         std::string port_str = std::to_string(this->port);
         this->sockfd = open_connection(this->remote_address.c_str(), port_str.c_str());
@@ -167,16 +168,16 @@ namespace fixate
         return this->sockfd;
     }
 
-    int tcp_client::disconnect()
+    inline int tcp_client::disconnect()
     {
         if (!this->is_active) return !this->is_active;
-        on_disconnect_cb();
+        if (on_disconnect_cb) on_disconnect_cb();
         int ec = close_file_descriptor(this->sockfd);
         this->is_active = false;
         return ec;
     }
 
-    int tcp_client::poll()
+    inline int tcp_client::poll()
     {
         void* buffer = reinterpret_cast<void*>(vrb_prefetch_tail(vrb_context));
         int size = this->MAX_READ_SIZE;
@@ -189,13 +190,13 @@ namespace fixate
         return bytes_read;
     }
 
-    int tcp_client::send_message(const char *buffer, int size)
+    inline int tcp_client::send_message(const char *buffer, int size)
     {
         int64_t now = system_timestamp();
         int bytes_written = 0;
         while (bytes_written < size) {
             const void* ptr = (const void*)(buffer + bytes_written);
-            int bytes_sent = send(this->sockfd, ptr, size - bytes_written, 0);
+            int bytes_sent = send(this->sockfd, ptr, size - bytes_written, MSG_NOSIGNAL);
             if (bytes_sent > 0) { bytes_written += bytes_sent; }
             else if (bytes_sent < 0) { error_handler(); }
             else { disconnect(); }
@@ -204,7 +205,7 @@ namespace fixate
         return bytes_written;
     }
 
-    int tcp_client::open_connection(const char *hostname, const char *port)
+    inline int tcp_client::open_connection(const char *hostname, const char *port)
     {
         struct addrinfo hints;
         std::memset(&hints, 0, sizeof(struct addrinfo));
@@ -272,21 +273,21 @@ namespace fixate {
         }
     }
 
-    tcp_ssl_client::tcp_ssl_client(const std::string& remote_address, int port,
+    inline tcp_ssl_client::tcp_ssl_client(const std::string& remote_address, int port,
                 on_connect on_connect_cb, on_disconnect on_disconnect_cb, on_error on_error_cb)
         : base(remote_address, port, on_connect_cb, on_disconnect_cb, on_error_cb)
     {
         ssl_context = details::ssl_ctx_create();
     }
 
-    tcp_ssl_client::tcp_ssl_client(tcp_ssl_client&& other)
+    inline tcp_ssl_client::tcp_ssl_client(tcp_ssl_client&& other)
         : base(static_cast<base&&>(other))
     {
         ssl = std::move(other.ssl); other.ssl = nullptr;
         ssl_context = std::move(other.ssl_context); other.ssl_context = nullptr;
     }
 
-    tcp_ssl_client& tcp_ssl_client::operator=(tcp_ssl_client&& other) {
+    inline tcp_ssl_client& tcp_ssl_client::operator=(tcp_ssl_client&& other) {
         if (this != &other) {
             base::operator=(std::move(static_cast<base&&>(other)));
             ssl = std::move(other.ssl); other.ssl = nullptr;
@@ -295,13 +296,13 @@ namespace fixate {
         return *this;
     }
 
-    tcp_ssl_client::~tcp_ssl_client() {
+    inline tcp_ssl_client::~tcp_ssl_client() {
         disconnect();
         if (ssl) SSL_free(ssl);
         details::ssl_ctx_destroy();
     }
 
-    void tcp_ssl_client::error_handler(int ret_val) {
+    inline void tcp_ssl_client::error_handler(int ret_val) {
         int ec = SSL_get_error(ssl, ret_val);
         switch (ec)
         {
@@ -315,7 +316,7 @@ namespace fixate {
         }
     }
 
-    int tcp_ssl_client::connect()
+    inline int tcp_ssl_client::connect()
     {
         std::string port_str = std::to_string(this->port);
         this->sockfd = open_connection(this->remote_address.c_str(), port_str.c_str());
@@ -326,7 +327,7 @@ namespace fixate {
         return this->sockfd;
     }
 
-    int tcp_ssl_client::disconnect()
+    inline int tcp_ssl_client::disconnect()
     {
         if (!this->is_active) return !this->is_active;
         on_disconnect_cb();
@@ -336,7 +337,7 @@ namespace fixate {
         return ec;
     }
 
-    int tcp_ssl_client::poll()
+    inline int tcp_ssl_client::poll()
     {
         if (!this->is_active)
             return 0;
@@ -353,7 +354,7 @@ namespace fixate {
         return bytes_read;
     }
 
-    int tcp_ssl_client::send_message(const char *buffer, int size)
+    inline int tcp_ssl_client::send_message(const char *buffer, int size)
     {
         int64_t now = system_timestamp();
         int bytes_written = 0;
@@ -368,7 +369,7 @@ namespace fixate {
         return bytes_written;
     }
 
-    int tcp_ssl_client::open_connection(const char *hostname, const char *port)
+    inline int tcp_ssl_client::open_connection(const char *hostname, const char *port)
     {
         struct addrinfo hints;
         std::memset(&hints, 0, sizeof(struct addrinfo));
@@ -448,17 +449,17 @@ namespace fixate {
 
 namespace fixate {
 
-    udp_client::udp_client(const std::string& remote_address, int port,
+    inline udp_client::udp_client(const std::string& remote_address, int port,
                 on_connect on_connect_cb, on_disconnect on_disconnect_cb, on_error on_error_cb)
         : base(remote_address, port, on_connect_cb, on_disconnect_cb, on_error_cb) {}
 
-    udp_client::udp_client(udp_client&& other)
+    inline udp_client::udp_client(udp_client&& other)
         : base(static_cast<base&&>(other))
     {
         server_addr = std::move(other.server_addr);
     }
 
-    udp_client& udp_client::operator=(udp_client&& other) {
+    inline udp_client& udp_client::operator=(udp_client&& other) {
         if (this != &other) {
             base::operator=(std::move(static_cast<base&&>(other)));
             server_addr = std::move(other.server_addr);
@@ -466,9 +467,9 @@ namespace fixate {
         return *this;
     }
 
-    udp_client::~udp_client() { disconnect(); }
+    inline udp_client::~udp_client() { disconnect(); }
 
-    void udp_client::error_handler() {
+    inline void udp_client::error_handler() {
         int ec = errno;
         switch (ec) {
             case EAGAIN: break;
@@ -476,7 +477,7 @@ namespace fixate {
         }
     }
 
-    int udp_client::connect()
+    inline int udp_client::connect()
     {
         std::string port_str = std::to_string(this->port);
         this->sockfd = open_connection(this->remote_address.c_str(), port_str.c_str());
@@ -487,7 +488,7 @@ namespace fixate {
         return this->sockfd;
     }
 
-    int udp_client::disconnect()
+    inline int udp_client::disconnect()
     {
         if (!this->is_active) return !this->is_active;
         on_disconnect_cb();
@@ -496,7 +497,7 @@ namespace fixate {
         return ec;
     }
 
-    int udp_client::poll()
+    inline int udp_client::poll()
     {
         void* buffer = reinterpret_cast<void*>(vrb_prefetch_tail(vrb_context));
         int size = this->MAX_READ_SIZE;
@@ -512,7 +513,7 @@ namespace fixate {
         return bytes_read;
     }
 
-    int udp_client::send_message(const char *buffer, int size)
+    inline int udp_client::send_message(const char *buffer, int size)
     {
         int64_t now = system_timestamp();
         int bytes_written = 0;
@@ -527,7 +528,7 @@ namespace fixate {
         return bytes_written;
     }
 
-    int udp_client::open_connection(const char *hostname, const char *port)
+    inline int udp_client::open_connection(const char *hostname, const char *port)
     {
         struct addrinfo hints;
         std::memset(&hints, 0, sizeof(struct addrinfo));
@@ -561,11 +562,11 @@ namespace fixate {
 
 namespace fixate {
 
-    file_client::file_client(const std::string& filename,
+    inline file_client::file_client(const std::string& filename,
                 on_connect on_connect_cb = nullptr, on_disconnect on_disconnect_cb = nullptr, on_error on_error_cb = nullptr)
         : base("", 0, on_connect_cb, on_disconnect_cb, on_error_cb), filename(filename) {}
 
-    file_client::file_client(file_client&& other)
+    inline file_client::file_client(file_client&& other)
         : base(static_cast<base&&>(other))
     {
         filename = std::move(other.filename);
@@ -573,7 +574,7 @@ namespace fixate {
         wfile = std::move(other.wfile); other.wfile = nullptr;
     }
 
-    file_client& file_client::operator=(file_client&& other) {
+    inline file_client& file_client::operator=(file_client&& other) {
         if (this != &other) {
             base::operator=(std::move(static_cast<base&&>(other)));
             filename = std::move(other.filename);
@@ -582,13 +583,14 @@ namespace fixate {
         }
         return *this;
     }
-    file_client::~file_client() { disconnect(); }
 
-    void file_client::error_handler(io_error ec, const std::string& msg) {
+    inline file_client::~file_client() { disconnect(); }
+
+    inline void file_client::error_handler(io_error ec, const std::string& msg) {
         throw connection_exception(static_cast<int>(ec), msg);
     }
 
-    FILE* file_client::fopen_or_die(const char *filename, const char *instruction)
+    inline FILE* file_client::fopen_or_die(const char *filename, const char *instruction)
     {
         FILE *const f = fopen(filename, instruction);
         if (f == nullptr)
@@ -596,13 +598,13 @@ namespace fixate {
         return f;
     }
 
-    void file_client::fclose_or_die(FILE *file)
+    inline void file_client::fclose_or_die(FILE *file)
     {
         if (fclose(file))
             error_handler(io_error::fclose, "Failed to close file: \"" + std::string(filename) + "\"");
     }
 
-    size_t file_client::fsize_or_die(const char *filename)
+    inline size_t file_client::fsize_or_die(const char *filename)
     {
         struct stat st;
         if (stat(filename, &st) != 0)
@@ -616,7 +618,7 @@ namespace fixate {
         return size;
     }
 
-    int file_client::connect()
+    inline int file_client::connect()
     {
         std::string wfilename = filename + "_output";
         rfile = fopen_or_die(filename.c_str(), "rb");
@@ -628,7 +630,7 @@ namespace fixate {
         return 1;
     }
 
-    int file_client::disconnect()
+    inline int file_client::disconnect()
     {
         if (!this->is_active) return !this->is_active;
         on_disconnect_cb();
@@ -638,7 +640,7 @@ namespace fixate {
         return 1;
     }
 
-    int file_client::poll()
+    inline int file_client::poll()
     {
         if (!this->is_active) return 0;
 
@@ -658,7 +660,7 @@ namespace fixate {
         return bytes_read;
     }
 
-    int file_client::send_message(const char *buffer, int size)
+    inline int file_client::send_message(const char *buffer, int size)
     {
         int64_t now = system_timestamp();
         int bytes_written = 0;

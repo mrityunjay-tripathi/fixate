@@ -52,7 +52,7 @@ namespace fixate {
             "The FIX Message body must start with `MessageType`."
         );
     public:
-        FixMessage() {}
+        FixMessage() : mBodyLen(0) {}
 
         template <typename TvpType, typename ... TArgs, typename ... Args>
         void resize(Args&& ... args) { return mMsgBody.template resize<TvpType, TArgs...>(std::forward<Args>(args)...); }
@@ -63,9 +63,12 @@ namespace fixate {
         template <typename TvpType, typename ... TArgs, typename ... Args>
         void set(Args&& ... args) { return mMsgBody.template set<TvpType, TArgs...>(std::forward<Args>(args)...); }
 
-        void updateBodyLength() {
-            int bodyLength = mMsgBody.width();
-            mMsgHeader.template set<BodyLength>(bodyLength);
+        int getBodyLength() { return mBodyLen; }
+
+        int updateBodyLength() {
+            mBodyLen = mMsgBody.width();
+            mMsgHeader.template set<BodyLength>(mBodyLen);
+            return mBodyLen;
         }
 
         void updateCheckSum() {
@@ -93,6 +96,7 @@ namespace fixate {
         TvpGroup<typename FixVersionTag<FixVersion>::type, BodyLength> mMsgHeader;
         TvpGroup<TvpTypes ...> mMsgBody;
         TvpGroup<CheckSum> mMsgTrailer;
+        int mBodyLen;
     };
 }
 

@@ -73,6 +73,18 @@ namespace fixate { namespace details {
     }
 
     /**
+     * Integer to String conversion.
+     * @param val The integral value that is to be converted.
+     */
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    std::string itoa(T val)
+    {
+        char output[32];
+        size_t digits = itoa(output, val);
+        return std::string(output, digits);
+    }
+
+    /**
      * Double to String conversion.
      * @param dest The pointer to output buffer.
      * @param val The floating point value that is to be converted.
@@ -96,6 +108,18 @@ namespace fixate { namespace details {
     }
 
     /**
+     * Double to String conversion.
+     * @param val The floating point value that is to be converted.
+     */
+    template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+    std::string dtoa(T val, int accuracy = 10)
+    {
+        char output[128];
+        size_t digits = dtoa(output, val, accuracy);
+        return std::string(output, digits);
+    }
+
+    /**
      * String to Integer conversion.
      * @param first The begin pointer of buffer.
      * @param last The end pointer of buffer.
@@ -115,6 +139,26 @@ namespace fixate { namespace details {
         output = sign * val;
         return true;
     }
+
+    /**
+     * String to Integer conversion.
+     * @param str The input string.
+     */
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    T atoi(std::string_view str)
+    {
+        T output;
+        bool ret = atoi(str.data(), str.data() + str.size(), output);
+        FIXATE_ASSERT(ret == true, "String to integer conversion failed");
+        return output;
+    }
+
+    /**
+     * String to Integer conversion.
+     * @param str The input string.
+     */
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    T atoi(const std::string& str) { return atoi<T>(std::string_view(str)); }
 
     /**
      * String to Double conversion.
@@ -143,6 +187,26 @@ namespace fixate { namespace details {
         output = sign * val;
         return true;
     }
+
+    /**
+     * String to Double conversion.
+     * @param str The input string.
+     */
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    T atod(std::string_view str)
+    {
+        T output;
+        bool ret = atod(str.data(), str.data() + str.size(), output);
+        FIXATE_ASSERT(ret == true, "String to double conversion failed");
+        return output;
+    }
+
+    /**
+     * String to Double conversion.
+     * @param str The input string.
+     */
+    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    T atod(const std::string& str) { return atod<T>(std::string_view(str)); }
 
     inline std::pair<int, int> find_tag(const char *haystack, const int m, const char *needle, const int n)
     {
@@ -408,7 +472,7 @@ namespace fixate {
         template <typename T = void>
         void resize(size_t capacity) { data.resize(capacity); Size = capacity; }
         template <typename ... TArgs>
-        const auto& get(size_t i) const { return data[i].template get<TArgs...>(); }
+        auto get(size_t i) const { return data[i].template get<TArgs...>(); }
         template <typename ... TArgs, typename ... Args>
         void set(size_t i, Args&& ... args) { data[i].template set<TArgs...>(std::forward<Args>(args)...); Size = std::max(Size, i + 1); }
         int dump(char* dest) const {

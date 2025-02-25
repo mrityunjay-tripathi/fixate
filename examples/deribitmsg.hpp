@@ -132,8 +132,9 @@ namespace examples {
         MarketDataRequestReject() : Base() { Base::set<fx::MessageType>(fx::MessageTypeEnum::MarketDataRequestReject); }
     };
 
-    using MDEntries = fx::TvpVector<fx::TvpGroup<fx::MDUpdateAction, fx::MDEntryType, fx::MDEntryPx, fx::MDEntrySize, fx::MDEntryDate, fx::Side,
-        fx::OrderID, fx::SecondaryOrderID, fx::OrderStatus, fx::DeribitLabel, fx::Price, fx::Text, fx::DeribitLiquidation, fx::TrdMatchID>>;
+    using MDEntries = fx::TvpVector<fx::TvpGroup<fx::MDUpdateAction, fx::MDEntryType, fx::MDEntryPx, fx::MDEntrySize, fx::MDEntryDate,
+        fx::DeribitTradeId, fx::Side, fx::OrderID, fx::SecondaryOrderID, fx::OrderStatus, fx::DeribitLabel, fx::Price, fx::Text,
+        fx::DeribitLiquidation, fx::TrdMatchID>>;
     struct MarketDataIncrementalRefresh : public fx::DeribitFixMessage<fx::Symbol, fx::ContractMultiplier,
         fx::TradeVolume24h, fx::MarkPrice, fx::OpenInterest, fx::PutOrCall,
         fx::MDReqID, fx::NoMDEntries, MDEntries>
@@ -145,20 +146,17 @@ namespace examples {
         MarketDataIncrementalRefresh() : Base() { Base::set<fx::MessageType>(fx::MessageTypeEnum::MarketDataIncrementalRefresh); }
     };
 
-    using MDEntriesVec = fx::TvpVector<fx::TvpGroup<
-        fx::MDEntryType, fx::MDEntryPx, fx::MDEntrySize, fx::MDEntryDate, fx::DeribitTradeId, fx::Side, fx::Price,
-        fx::Text, fx::OrderID, fx::SecondaryOrderID, fx::OrderStatus, fx::DeribitLabel, fx::DeribitLiquidation, fx::TrdMatchID>
-    >;
     struct MarketDataSnapshotFullRefresh : public fx::DeribitFixMessage<fx::Symbol, fx::ContractMultiplier,
         fx::UnderlyingSymbol, fx::UnderlyingPrice, fx::TradeVolume24h, fx::MarkPrice, fx::OpenInterest, fx::PutOrCall,
-        fx::CurrentFunding, fx::Funding8h, fx::MDReqID, fx::NoMDEntries, MDEntriesVec>
+        fx::CurrentFunding, fx::Funding8h, fx::MDReqID, fx::NoMDEntries, MDEntries>
     {
         typedef fx::DeribitFixMessage<fx::Symbol, fx::ContractMultiplier, fx::UnderlyingSymbol, fx::UnderlyingPrice,
             fx::TradeVolume24h, fx::MarkPrice, fx::OpenInterest, fx::PutOrCall, fx::CurrentFunding, fx::Funding8h,
-            fx::MDReqID, fx::NoMDEntries, MDEntriesVec
+            fx::MDReqID, fx::NoMDEntries, MDEntries
         > Base;
         MarketDataSnapshotFullRefresh() : Base() { Base::set<fx::MessageType>(fx::MessageTypeEnum::MarketDataSnapshotFullRefresh); }
     };
+
 }
 
 #endif
