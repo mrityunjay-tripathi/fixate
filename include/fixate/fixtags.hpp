@@ -88,6 +88,7 @@ namespace fixate {
     static constexpr const char* TagResetSeqNumFlag = "141";
     static constexpr const char* TagExecType = "150";
     static constexpr const char* TagLeavesQty = "151";
+    static constexpr const char* TagSecurityType = "167";
     static constexpr const char* TagSecondaryOrderID = "198";
     static constexpr const char* TagPutOrCall = "201";
     static constexpr const char* TagSecurityExchange = "207";
@@ -112,6 +113,7 @@ namespace fixate {
     static constexpr const char* TagMDImplicitDelete = "547";
     static constexpr const char* TagUsername = "553";
     static constexpr const char* TagPassword = "554";
+    static constexpr const char* TagRFQReqID = "644";
     static constexpr const char* TagOpenInterest = "746";
     static constexpr const char* TagUnderlyingPrice = "810";
     static constexpr const char* TagPeggedPrice = "839";
@@ -274,6 +276,7 @@ namespace fixate {
     struct ResetSeqNumFlag : public TvpChar<&TagResetSeqNumFlag> {};
     struct ExecType : public TvpChar<&TagExecType> {};
     struct LeavesQty : public TvpFloat<double, 32, &TagLeavesQty> {};
+    struct SecurityType : public TvpStringFixed<16, &TagSecurityType> {};
     struct SecondaryOrderID : public TvpStringFixed<32, &TagSecondaryOrderID> {};
     struct PutOrCall : public TvpChar<&TagPutOrCall> {};
     struct SecurityExchange : public TvpStringFixed<32, &TagSecurityExchange> {};
@@ -298,6 +301,7 @@ namespace fixate {
     struct MDImplicitDelete : public TvpChar<&TagMDImplicitDelete> {};
     struct Username : public TvpStringFixed<64, &TagUsername> {};
     struct Password : public TvpStringFixed<256, &TagPassword> {};
+    struct RFQReqID : public TvpStringFixed<64, &TagRFQReqID> {};
     struct OpenInterest : public TvpFloat<double, 32, &TagOpenInterest> {};
     struct UnderlyingPrice : public TvpFloat<double, 32, &TagUnderlyingPrice> {};
     struct PeggedPrice : public TvpFloat<double, 32, &TagPeggedPrice> {};

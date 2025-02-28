@@ -186,7 +186,7 @@ namespace fixate
             vrb_move_tail(vrb_context, bytes_read);
             last_read_timestamp = system_timestamp();
         }
-        else { error_handler(); }
+        else if (bytes_read < 0) { error_handler(); }
         return bytes_read;
     }
 
