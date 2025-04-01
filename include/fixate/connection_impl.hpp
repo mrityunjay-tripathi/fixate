@@ -179,15 +179,24 @@ namespace fixate
 
     inline int tcp_client::poll()
     {
-        void* buffer = reinterpret_cast<void*>(vrb_prefetch_tail(vrb_context));
-        int size = this->MAX_READ_SIZE;
-        int bytes_read = recv(this->sockfd, buffer, size, 0);
-        if (bytes_read > 0) {
-            vrb_move_tail(vrb_context, bytes_read);
-            last_read_timestamp = system_timestamp();
+        int nfds = epoll_wait(this->epollfd, this->events, this->MAX_EVENTS, -1);
+        for (int i = 0; i < nfds; ++i) {
+            if (this->events[i].events & EPOLLIN) {
+                void* buffer = reinterpret_cast<void*>(vrb_prefetch_tail(vrb_context));
+                int size = this->MAX_READ_SIZE;
+                int bytes_read = recv(this->sockfd, buffer, size, 0);
+                if (bytes_read > 0) {
+                    vrb_move_tail(vrb_context, bytes_read);
+                    last_read_timestamp = system_timestamp();
+                } else if (bytes_read < 0) { error_handler(); }
+            }
+            if (this->events[i].events & (EPOLLERR | EPOLLHUP)) {
+                close(this->sockfd);
+                close(this->epollfd);
+                error_handler();
+            }
         }
-        else if (bytes_read < 0) { error_handler(); }
-        return bytes_read;
+        return nfds;
     }
 
     inline int tcp_client::send_message(const char *buffer, int size)
@@ -226,6 +235,22 @@ namespace fixate
             // Set non-blocking socket.
             int flags = fcntl(sfd, F_GETFL, 0);
             fcntl(sfd, F_SETFL, flags | O_NONBLOCK);
+
+            // Create epoll instance
+            epollfd = epoll_create1(0);
+            if (epollfd < 0) {
+                close(epollfd);
+                on_error_cb(errno, strerror(errno));
+                throw connection_exception(errno, "epoll_create1 failed");
+            }
+            epoll_event event{};
+            event.events = EPOLLIN | EPOLLERR | EPOLLHUP;
+            event.data.fd = sfd;
+            // epoll_ctl: This system call is used to add, modify, or remove entries
+            // in the interest list of the epoll(7) instance referred to
+            // by the file descriptor epfd.
+            epoll_ctl(epollfd, EPOLL_CTL_ADD, sfd, &event);
+
             int connect_ec = ::connect(sfd, addr->ai_addr, addr->ai_addrlen);
             if (connect_ec == 0) break;
             err = errno;

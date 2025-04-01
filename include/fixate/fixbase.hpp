@@ -20,21 +20,21 @@
 #include <cassert>
 
 #define FIXATE_FILENAME (strrchr("/" __FILE__, '/') + 1)
-#define FIXATE_ASSERT(x, msg)                                                                                              \
+#define FIXATE_ASSERT(x, msg)                                                                                               \
     do                                                                                                                      \
     {                                                                                                                       \
         bool v = x;                                                                                                         \
         if (!(v))                                                                                                           \
         {                                                                                                                   \
-            fprintf(stderr, "ERROR: assertion \"%s\" failed at %s:%d  %s\n", msg, FIXATE_FILENAME, __LINE__, __func__);    \
+            fprintf(stderr, "ERROR: assertion \"%s\" failed at %s:%d  %s\n", msg, FIXATE_FILENAME, __LINE__, __func__);     \
             abort();                                                                                                        \
         }                                                                                                                   \
     } while (0)
 
-#define FIXATE_THROW(msg)                                                                                                  \
+#define FIXATE_THROW(msg)                                                                                                   \
     do                                                                                                                      \
     {                                                                                                                       \
-        fprintf(stderr, "EXCEPTION \"%s\" thrown at %s:%d  %s\n", msg, FIXATE_FILENAME, __LINE__, __func__);               \
+        fprintf(stderr, "EXCEPTION \"%s\" thrown at %s:%d  %s\n", msg, FIXATE_FILENAME, __LINE__, __func__);                \
         exit(EXIT_FAILURE);                                                                                                 \
     } while (0)
 

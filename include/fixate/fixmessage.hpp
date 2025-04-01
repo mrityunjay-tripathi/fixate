@@ -17,7 +17,8 @@
 
 namespace fixate {
 
-    enum class FixVersionType {
+    enum class FixVersionType
+    {
         FIX_4_0,
         FIX_4_1,
         FIX_4_2,

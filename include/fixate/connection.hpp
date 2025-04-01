@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -57,6 +58,7 @@ namespace fixate {
     public:
         static constexpr const int DEFAULT_ERROR_CODE = -1;
         static constexpr const int MAX_READ_SIZE = 8 * 1024;
+        static constexpr const int MAX_EVENTS = 5;
         static int64_t system_timestamp();
     public:
         base_connection() {}
@@ -81,7 +83,9 @@ namespace fixate {
         bool has_data();
         int close_file_descriptor(int fd);
     protected:
+        epoll_event events[MAX_EVENTS];
         int sockfd = -1;
+        int epollfd = -1;
         bool is_active = false;
         int port = 0;
         std::string remote_address;

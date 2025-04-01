@@ -68,7 +68,7 @@ namespace fixate {
                 if (dataSource->size() > msgLen) {
                     readFromSource = false;
                     MessageTypeEnum msgType = MsgTypeStringToEnum(hdr.get<MessageType>());
-                    std::cout << "Incoming Message: " << details::fixstring(dataSource->read_ptr(), msgLen) << std::endl;
+                    // std::cout << "Incoming Message: " << details::fixstring(dataSource->read_ptr(), msgLen) << std::endl;
                     visitor->operator()(msgType, dataSource->read_ptr(), msgLen);
                     dataSource->move_head(msgLen);
                     return msgLen > 0;
@@ -80,7 +80,7 @@ namespace fixate {
         template <typename TFixMessage>
         size_t sendmsg(TFixMessage& msg, bool updateBodyLen = true, bool updateCheckSum = true) {
             int bytes = msg.dump(requestBuf, updateBodyLen, updateCheckSum);
-            std::cout << "Outgoing Message: " << details::fixstring(requestBuf, bytes) << std::endl;
+            // std::cout << "Outgoing Message: " << details::fixstring(requestBuf, bytes) << std::endl;
             return bytes > 0 ? dataSource->send_message(requestBuf, bytes) : 0;
         }
     private:
